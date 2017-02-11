@@ -1,0 +1,116 @@
+.\" 
+.\" Copyright 2017 James K. Lowden. 
+.\" 
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.
+.Dd 11 February 2017
+.Dt SQLRPT 1
+.Os
+.Sh NAME
+.Nm sqlrpt
+.Nd Render SQLite query as groff table 
+.Sh SYNOPSIS
+.Nm
+.Op Fl f Ar format
+.Fl d Ar dbname
+.Fl q Ar query
+.Op Fl w Ar width
+.
+.Sh DESCRIPTION
+.Nm
+executes
+.Ar query
+on the SQLite database
+.Ar dbname .
+It produces
+.Ic tbl
+output, complete with
+.Ql .TS
+and
+.Ql .TE .
+.
+.Pp
+The options are:
+.
+.Bl -tag -width form
+.It Fl d Ar dbname
+The name of the SQLite database file. 
+.It Fl q Ar query
+The SQL to execute.
+.It Fl w Ar width
+The width of the table, in inches.  Default is
+.Li 6.5 .  
+.
+.It Fl f Ar format
+Any table formatting options, per the
+.Xr tbl 1
+utility of the
+.Xr groff 1
+typesetting system.
+The
+.Ar format
+string may consist of any options and column-formatting characters described in
+.Ql "Tbl \(em A Program to Format Tables"
+by L. L. Cherry and M. E. Lesk.
+.Pp
+By default,
+.Ar format
+uses the option
+.Ql box;
+and formats
+.Li TEXT columns as left-justified
+.Li (L) ,
+and numeric columns as decimal-aligned
+.Li (N) Ns .
+.Ar format
+is output verbatim, except that a newline is inserted after the semicolon that separates the options from the format characters.  
+Any of the options described in the document \(em
+center, expand, box, allbox, doublebox, tab(x), linesize(n), and delim(xy)
+\(em may be used.  
+.El
+.
+.Pp
+Depending on the particular utility,
+.Xr man 1
+may be a convenient way to display the output of
+.Nm .
+Experiments by the author with GNU man gave good results if the
+.Nm
+output was redirected to a file first, and poor results if
+.Nm
+output was piped into
+.Ic man .
+In any case, the venerable
+.Xr rnoff 1
+utility can be used for convenient viewing in the terminal.
+.
+.Sh EXAMPLES
+.D1 sqlrpt -d ./catalog.db -q"select * from T" | nroff -t | cat  -s
+.D1 sqlrpt -d ./catalog.db -q"select * from T" | nroff -t | less -s
+.
+.Sh REFERENCE
+Lesk, M.E.:
+.Dq "TBL:  A Program to Format Tables" .  
+.
+.Sh SEE ALSO
+.Xr groff 1 ,
+.Xr groff 7 ,
+.Xr tbl 1 ,
+.Xr man 1 ,
+.Xr sqlite3 1 ,
+.
+.Sh BUGS
+There is no support for BLOB data.  NULL is always represented as
+.Ql NULL ;
+there is no provision to substitute another string.  Integers are retrieved with
+.Fn sqlite3_column_int ,
+on 32-bit systems that may sometimes be a limitation. Floating point values are rendered with a simple
+.Ql %f ;
+there is no provision to change the format.
