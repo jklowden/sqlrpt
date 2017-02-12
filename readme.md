@@ -4,5 +4,5 @@ with ‘.TS’ and ‘.TE’, for convenient in-terminal viewing or printing.
 
 To build _sqlrpt_, type **make** (requires GNU make).  To install, **make install*.  
 
-To use _sqlprt_, see the accompanying man page.
+To use _sqlrpt_, see the accompanying man page.
 
