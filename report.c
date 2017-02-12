@@ -31,9 +31,9 @@
 #define COUNT_OF(x) (sizeof(x)/sizeof(x[0]))
 
 static void
-syntax( const char name[]  ) {
+syntax( char name[]  ) {
   errx(EXIT_FAILURE,
-       "%s [-f format] [-w width] -d dbname -q query", (char*)basename(name));
+       "%s [-f format] [-w width] -d dbname -q query", basename(name));
 }
 
 // return true if format contains "box" as a distinct word
