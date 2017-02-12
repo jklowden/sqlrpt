@@ -12,8 +12,10 @@
  */
 
 #include <assert.h>
+#include <ctype.h>
 #include <err.h>
 #include <errno.h>
+#include <locale.h>
 #include <limits.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -33,6 +35,17 @@ syntax( const char name[]  ) {
        "%s [-f format] [-w width] -d dbname -q query", basename(name));
 }
 
+// return true if format contains "box" as a distinct word
+static bool
+is_box( const char format[] ) {
+  const char *p = strstr(format, "box");
+  if( !p ) return false;
+  if( p == format || !isalnum(p[-1]) ) {
+    return !isalnum(p[strlen(p)]);
+  }
+  return false;
+}
+
 static int
 report( sqlite3_stmt *stmt, int ncol, const char *format ) {
   const char *sep = "";
@@ -42,10 +55,11 @@ report( sqlite3_stmt *stmt, int ncol, const char *format ) {
     if( p == NULL ) {
       printf( "%s;\n", format ); // table options
 
-      // alignment of titles
-      char heading[ncol];;
-      memset(heading, 'L', ncol);
-      printf("%.*s\n", ncol, heading);
+      // format of titles
+      char heading[2 * ncol];
+      memset(heading, 'L', sizeof(heading));
+      for( int i=1; i < sizeof(heading); i += 2) { heading[i] = 'B'; }
+      printf("%.*s\n", (int)sizeof(heading), heading);
 
       // alignment of data
       char ch = 'c';
@@ -73,7 +87,7 @@ report( sqlite3_stmt *stmt, int ncol, const char *format ) {
       for( int c=0; c < ncol; c++, sep = "\t" ) {
 	printf( "%sT{\n%s\nT}", sep, sqlite3_column_name(stmt, c) );
       }
-      printf("\n_\n");
+      printf(is_box(format)? "\n_\n" : "\n");
     } else {
       printf("%.*s\n%s\n", (int)(p - format), format, p);    }
   }
@@ -82,10 +96,10 @@ report( sqlite3_stmt *stmt, int ncol, const char *format ) {
   for( int c=0; c < ncol; c++, sep = "\t" ) {
     switch( sqlite3_column_type(stmt, c) ) {
     case SQLITE_INTEGER:
-      printf( "%s%d", sep, sqlite3_column_int(stmt, c) );
+      printf( "%s%'d", sep, sqlite3_column_int(stmt, c) );
       break;
     case SQLITE_FLOAT:
-      printf( "%s%f", sep, sqlite3_column_double(stmt, c) );
+      printf( "%s%'f", sep, sqlite3_column_double(stmt, c) );
       break;
     case SQLITE_TEXT:
       printf( "%sT{\n%s\nT}", sep, (char*)sqlite3_column_text(stmt, c) );
@@ -139,13 +153,16 @@ process( const char *dbname, const char *sql,
 	 const char *line_length, const char *format )
 {
   const static int mode = SQLITE_OPEN_READONLY;
-  static const char setup_fmt[] = { ".ll +%si\n" ".TS" };
+  static const char setup_fmt[] = { ".ll +%s%c\n" ".TS" };
 
   char *setup;
   sqlite3 *db;
   char *errmsg;
 
-  if( -1 == asprintf(&setup, setup_fmt, line_length) ) {
+  setlocale(LC_ALL, "");
+
+  if( -1 == asprintf(&setup, setup_fmt,
+		     line_length, atof(line_length) < 100? 'i' : ' ') ) {
     err(EXIT_FAILURE, "%s:%d", __func__, __LINE__);
   }
 

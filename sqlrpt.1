@@ -29,12 +29,15 @@ executes
 .Ar query
 on the SQLite database
 .Ar dbname .
-It produces
-.Ic tbl
-output, complete with
+It produces output suitable for processing with 
+.Xr nroff 1
+or
+.Xr groff 1 ,
+complete with
 .Ql .TS
 and
-.Ql .TE .
+.Ql .TE , 
+for convenient in-terminal viewing or printing.  
 .
 .Pp
 The options are:
@@ -57,14 +60,13 @@ typesetting system.
 The
 .Ar format
 string may consist of any options and column-formatting characters described in
-.Ql "Tbl \(em A Program to Format Tables"
-by L. L. Cherry and M. E. Lesk.
+.Sx REFERENCE .
 .Pp
-By default,
+If this option is not used, 
 .Ar format
-uses the option
+defaults to the 
 .Ql box;
-and formats
+option and sets
 .Li TEXT columns as left-justified
 .Li (L) ,
 and numeric columns as decimal-aligned
@@ -90,14 +92,56 @@ output was piped into
 In any case, the venerable
 .Xr rnoff 1
 utility can be used for convenient viewing in the terminal.
+See
+.Sx EXAMPLES
+for ways to use nroff interactively. 
+.
+.Sh RENDERING
+Numeric columns are rendered with a thousands separator if locale is set correctly.  To defeat that feature, set the locale to
+.Dq C .
+Text columns and column heading are formatted with troff, bracketed with
+.Ql T{
+and
+.Ql T}
+(see
+.Sx REFERENCE
+for details).
+The effect is that
+.Xr tbl 1
+wraps the text at a width of its choosing to create a table that is easy to read. 
+Column heading are rendered in boldface.  If
+.Ar format
+is
+.Ql box ,
+the column headings are separated from the data by a line.  To get the plainest possible output, pass an empty string as
+.Ar format .
 .
 .Sh EXAMPLES
-.D1 sqlrpt -d ./catalog.db -q"select * from T" | nroff -t | cat  -s
-.D1 sqlrpt -d ./catalog.db -q"select * from T" | nroff -t | less -s
+.Xr nroff 1
+produces a
+.Dq page
+of output, normally causing it to scroll off the screen.  To prevent that, small results can be passed through
+.Ic cat
+with the
+.Fl s
+option:
+.D1 sqlrpt -d catalog.db -q"select * from T" | nroff -t | cat  -s
+.Pp
+Larger outputs are more conveniently viewed with GNU
+.Ic less ,
+which also has a
+.Fl s
+option to to remove blank lines: 
+.D1 sqlrpt -d catalog.db -q"select * from T" | nroff -t | less -s
+.Pp
+One way to override the locale is to set
+.Ev LC_ALL to
+.Dq C :
+.D1 LC_ALL="C" sqlrpt -d catalog.db -q"select * from T" | nroff -t
 .
 .Sh REFERENCE
 Lesk, M.E.:
-.Dq "TBL:  A Program to Format Tables" .  
+.Dq "TBL \(em A Program to Format Tables" .  
 .
 .Sh SEE ALSO
 .Xr groff 1 ,
@@ -112,5 +156,16 @@ There is no support for BLOB data.  NULL is always represented as
 there is no provision to substitute another string.  Integers are retrieved with
 .Fn sqlite3_column_int ,
 on 32-bit systems that may sometimes be a limitation. Floating point values are rendered with a simple
-.Ql %f ;
+.Ql %'f ;
 there is no provision to change the format.
+.
+.Sh MOTIVATION
+The popular SQLite interactive shell, while capable of producing output in a variety of formats, is a bit simplistic when rendering a the result as columns. Column names are not included by default, and column widths default to a fixed width.  Columns that would render wider than 10 characters or so, including numeric columns, are truncated in the display.  Very wide character columns make display inconvenient at best.
+.Pp
+Improving the SQLite shell to deal flexibly with wide columns would be tedious.  Fortunately, though, it's also unnecessary, because
+.Xr tbl 1
+has all the built-in functionality, including producing Postscript output.   Recent versions of groff can also render PDF directly.
+.
+.Sh AUTHOR
+.Nm
+was written by James K. Lowden for the benefit of the SQLite community.  It is published with a standard 3-clause BSD license.  

@@ -9,3 +9,6 @@ LDFLAGS = -lsqlite3
 
 sqlrpt: report.c
 	$(CC) -o $@ $^  $(CPPFLAGS) $(CFLAGS) $(LDFLAGS)
+
+TAGS: *.c
+	etags $^
