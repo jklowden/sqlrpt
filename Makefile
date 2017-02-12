@@ -10,5 +10,9 @@ LDFLAGS = -lsqlite3
 sqlrpt: report.c
 	$(CC) -o $@ $^  $(CPPFLAGS) $(CFLAGS) $(LDFLAGS)
 
+install: sqlrpt
+	install -D sqlrpt   /usr/local/bin/
+	install -D sqlrpt.1 /usr/local/share/man/man1/
+
 TAGS: *.c
 	etags $^
