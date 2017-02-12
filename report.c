@@ -33,7 +33,7 @@
 static void
 syntax( const char name[]  ) {
   errx(EXIT_FAILURE,
-       "%s [-f format] [-w width] -d dbname -q query", basename(name));
+       "%s [-f format] [-w width] -d dbname -q query", (char*)basename(name));
 }
 
 // return true if format contains "box" as a distinct word
