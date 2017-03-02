@@ -48,13 +48,14 @@ is_box( const char format[] ) {
 }
 
 static int
-report( sqlite3_stmt *stmt, int ncol, const char *format ) {
+report( sqlite3_stmt *stmt, int ncol, const char *formats[] ) {
   const char *sep = "";
 
-  if( format ) { // first line
-    const char *p = strchr(format, ';');
+  if( formats ) { // first line
+    printf("%s\n", formats[0]);
+    const char *p = strchr(formats[1], ';');
     if( p == NULL ) {
-      printf( "%s;\n", format ); // table options
+      printf( "%s;\n", formats[1] ); // table options
 
       // format of titles
       char heading[2 * ncol];
@@ -88,9 +89,9 @@ report( sqlite3_stmt *stmt, int ncol, const char *format ) {
       for( int c=0; c < ncol; c++, sep = "\t" ) {
 	printf( "%sT{\n%s\nT}", sep, sqlite3_column_name(stmt, c) );
       }
-      printf(is_box(format)? "\n_\n" : "\n");
+      printf(is_box(formats[1])? "\n_\n" : "\n");
     } else {
-      printf("%.*s\n%s\n", (int)(p - format), format, p);    }
+      printf("%.*s\n%s\n", (int)(p - formats[1]), formats[1], p);    }
   }
 
   sep = "";
@@ -118,14 +119,14 @@ report( sqlite3_stmt *stmt, int ncol, const char *format ) {
 
 static int
 execsql( sqlite3* db, const char *sql, 
-	 int (*callback)(sqlite3_stmt *stmt, int ncol, const char *format), 
-	 const char *format, char **errmsg )
+	 int (*callback)(sqlite3_stmt *stmt, int ncol, const char *formats[]), 
+	 const char *formats[], char **errmsg )
 {
   sqlite3_stmt *stmt;
   int erc;
   const char *pend;
 
-  assert(format);
+  assert(formats);
   
   if( (erc = sqlite3_prepare(db, sql, strlen(sql),
 			     &stmt, &pend)) != SQLITE_OK ) {
@@ -136,10 +137,10 @@ execsql( sqlite3* db, const char *sql,
   while( (erc = sqlite3_step(stmt)) == SQLITE_ROW ) {
     const int ncol = sqlite3_column_count(stmt);
 
-    if( 0 != callback(stmt, ncol, format) ) {
+    if( 0 != callback(stmt, ncol, formats) ) {
       return SQLITE_ABORT;
     }
-    format = NULL;
+    formats = NULL;
   }
 
   if( sqlite3_finalize(stmt) != SQLITE_OK ) {
@@ -171,9 +172,9 @@ process( const char *dbname, const char *sql,
     errx(EXIT_FAILURE, "'%s': %s", dbname, sqlite3_errmsg(db));
   }
   
-  printf("%s\n", setup);
+  const char *formats[2] = { setup, format };
 
-  if( execsql(db, sql, report, format, &errmsg) != SQLITE_OK ) {
+  if( execsql(db, sql, report, formats, &errmsg) != SQLITE_OK ) {
     errx(EXIT_FAILURE, "%s: %s: '%s'", __func__, errmsg, sql);
   }
 
