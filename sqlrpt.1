@@ -18,7 +18,8 @@
 .Nd Render SQLite query as groff table 
 .Sh SYNOPSIS
 .Nm
-.Op Fl f Ar format
+.Op Fl f Ar format 
+.Op Fl p Ar fmt 
 .Fl d Ar dbname
 .Fl q Ar query
 .Op Fl w Ar width
@@ -44,7 +45,28 @@ The options are:
 .
 .Bl -tag -width form
 .It Fl d Ar dbname
-The name of the SQLite database file. 
+The name of the SQLite database file.
+.It Fl p Ar fmt
+.Ar fmt
+is a comma-separated key-value pair in the form
+.Dq "name,format" ,
+where
+.Ar name
+is the name of a column and
+.Ar format
+is used as the format string for
+.Fn printf 3 .
+For example,
+.D1 "-p \(dqValue,%'8.2f\(dq"
+formats the
+.Dq Value
+column with 2 digits of precision using the thousands separator
+appropriate to the locale.
+.Pp
+This option can be used to format integer and floating-point values.
+To format more than one column, use
+.Fl p
+multiple times.  
 .It Fl q Ar query
 The SQL to execute.
 .It Fl w Ar width

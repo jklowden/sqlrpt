@@ -7,8 +7,10 @@ CPPFLAGS = -I/usr/local/include -D_GNU_SOURCE
 CFLAGS = -Wswitch -Werror -Wall -Wpointer-arith $(CNOWARN)
 LDFLAGS = -lsqlite3
 
-sqlrpt: report.c
+sqlrpt: report.c fmt.c
 	$(CC) -o $@ $^  $(CPPFLAGS) $(CFLAGS) $(LDFLAGS)
+
+report.c fmt.c: report.h
 
 TAGS: *.c
 	etags $^

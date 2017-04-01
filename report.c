@@ -28,7 +28,7 @@
 
 #include <sqlite3.h>
 
-#define COUNT_OF(x) (sizeof(x)/sizeof(x[0]))
+#include "report.h"
 
 static void
 syntax( char name[]  ) {
@@ -94,13 +94,17 @@ report( sqlite3_stmt *stmt, int ncol, const char *format ) {
   }
 
   sep = "";
+  const char *fmt;
   for( int c=0; c < ncol; c++, sep = "\t" ) {
+    printf( "%s", sep);
     switch( sqlite3_column_type(stmt, c) ) {
     case SQLITE_INTEGER:
-      printf( "%s%'d", sep, sqlite3_column_int(stmt, c) );
+      fmt=column_format(sqlite3_column_name(stmt, c), "%'f");
+      printf( fmt, sep, sqlite3_column_int(stmt, c) );
       break;
     case SQLITE_FLOAT:
-      printf( "%s%'f", sep, sqlite3_column_double(stmt, c) );
+      fmt=column_format(sqlite3_column_name(stmt, c), "%'f");
+      printf( fmt, sqlite3_column_double(stmt, c) );
       break;
     case SQLITE_TEXT:
       printf( "%sT{\n%s\nT}", sep, (char*)sqlite3_column_text(stmt, c) );
@@ -188,6 +192,20 @@ process( const char *dbname, const char *sql,
   return SQLITE_OK;
 }
 
+void
+set_column_format( const char arg[] ) {
+  char input[ 1 + strlen(arg) ];
+  strcpy( input, arg );
+  char *p = strchr( input, ',' );
+  if( !p ) {
+    warnx( "could not parse format argument '%s'", input );
+    return;
+  }
+
+  *p = '\0';
+  column_format( strdup(input), strdup(++p) );
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -198,13 +216,16 @@ main(int argc, char *argv[])
     *format = "box";
   int opt;
   
-  while ((opt = getopt(argc, argv, "d:f:q:w:")) != -1) {
+  while ((opt = getopt(argc, argv, "d:f:p:q:w:")) != -1) {
     switch (opt) {
     case 'd':
       dbname = strdup(optarg);
       break;
     case 'f':
       format = strdup(optarg);
+      break;
+    case 'p':
+      set_column_format(optarg);
       break;
     case 'q':
       sql = strdup(optarg);
