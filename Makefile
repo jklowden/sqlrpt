@@ -8,13 +8,13 @@ CFLAGS = -Wswitch -Werror -Wall -Wpointer-arith $(CNOWARN)
 LDFLAGS = -lsqlite3
 
 sqlrpt: report.c fmt.c
-	$(CC) -o $@ $^  $(CPPFLAGS) $(CFLAGS) $(LDFLAGS)
+	$(CC) -o $@ $^	$(CPPFLAGS) $(CFLAGS) $(LDFLAGS)
 
 report.c fmt.c: report.h
 
 install: sqlrpt
-        install -D sqlrpt   /usr/local/bin/
-        install -D sqlrpt.1 /usr/local/share/man/man1/
+	install -D sqlrpt   /usr/local/bin/
+	install -D sqlrpt.1 /usr/local/share/man/man1/
 
 TAGSTAGS: *.c
 	etags $^
