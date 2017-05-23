@@ -101,7 +101,7 @@ report( sqlite3_stmt *stmt, int ncol, const char *formats[] ) {
     printf( "%s", sep);
     switch( sqlite3_column_type(stmt, c) ) {
     case SQLITE_INTEGER:
-      fmt=column_format(sqlite3_column_name(stmt, c), "%'f");
+      fmt=column_format(sqlite3_column_name(stmt, c), "%'d");
       printf( fmt, sqlite3_column_int(stmt, c) );
       break;
     case SQLITE_FLOAT:
