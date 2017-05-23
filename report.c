@@ -79,6 +79,7 @@ report( sqlite3_stmt *stmt, int ncol, const char *formats[] ) {
 	  ch = 'L';
 	  break;
 	}
+	///warnx("%d: %c %s", c, ch, sqlite3_column_name(stmt, c));
 
 	printf( "%s%c", sep, ch );
       }
@@ -101,20 +102,20 @@ report( sqlite3_stmt *stmt, int ncol, const char *formats[] ) {
     switch( sqlite3_column_type(stmt, c) ) {
     case SQLITE_INTEGER:
       fmt=column_format(sqlite3_column_name(stmt, c), "%'f");
-      printf( fmt, sep, sqlite3_column_int(stmt, c) );
+      printf( fmt, sqlite3_column_int(stmt, c) );
       break;
     case SQLITE_FLOAT:
       fmt=column_format(sqlite3_column_name(stmt, c), "%'f");
       printf( fmt, sqlite3_column_double(stmt, c) );
       break;
     case SQLITE_TEXT:
-      printf( "%sT{\n%s\nT}", sep, (char*)sqlite3_column_text(stmt, c) );
+      printf( "T{\n%s\nT}", (char*)sqlite3_column_text(stmt, c) );
       break;
     case SQLITE_BLOB: default:
       assert(false);
       break;
     case SQLITE_NULL:
-      printf( "%s%s", sep, "NULL" );
+      printf( "%s", "NULL" );
     }
   }
   printf("\n");

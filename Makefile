@@ -16,5 +16,5 @@ install: sqlrpt
 	install -D sqlrpt   /usr/local/bin/
 	install -D sqlrpt.1 /usr/local/share/man/man1/
 
-TAGSTAGS: *.c
+TAGS: *.c
 	etags $^
